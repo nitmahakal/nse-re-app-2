@@ -23,9 +23,6 @@ import androidx.core.content.ContextCompat
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import androidx.work.ForegroundInfo
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.ExistingWorkPolicy
 import android.content.pm.ServiceInfo
 
 class MarketUpdateWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
