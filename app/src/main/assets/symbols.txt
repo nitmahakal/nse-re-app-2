@@ -1,0 +1,6 @@
+# Put NSE equity symbols here, one per line.
+# Example:
+# RELIANCE.NS
+# TCS.NS
+# INFY.NS
+# The app automatically adds .NS when it is omitted.

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NSE Market Research</string>
+    <string name="notification_channel_name">NSE background work</string>
+    <string name="notification_channel_description">Market data updates and saved scan runs</string>
+</resources>
