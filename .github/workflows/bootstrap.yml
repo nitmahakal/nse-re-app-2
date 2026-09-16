@@ -1,0 +1,112 @@
+name: Bootstrap Android Project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract-project:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        shell: bash
+        run: |
+          set -e
+
+          ZIP_FILE="nse-market-research-app-v2-fixed.zip"
+          EXTRACT_DIR="_zip_extract"
+
+          rm -rf "$EXTRACT_DIR"
+          mkdir -p "$EXTRACT_DIR"
+
+          unzip -q "$ZIP_FILE" -d "$EXTRACT_DIR"
+
+          echo "ZIP extracted."
+
+      - name: Detect project root
+        id: detect
+        shell: bash
+        run: |
+          set -e
+
+          PROJECT_ROOT=""
+
+          if [ -f "_zip_extract/settings.gradle" ] || [ -f "_zip_extract/settings.gradle.kts" ]; then
+            PROJECT_ROOT="_zip_extract"
+          else
+            while IFS= read -r file; do
+              dir="$(dirname "$file")"
+
+              if [ -f "$dir/settings.gradle" ] || [ -f "$dir/settings.gradle.kts" ]; then
+                PROJECT_ROOT="$dir"
+                break
+              fi
+            done < <(find "_zip_extract" -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \))
+          fi
+
+          if [ -z "$PROJECT_ROOT" ]; then
+            echo "ERROR: Android/Gradle project root not found."
+            find "_zip_extract" -maxdepth 4 -type f | sort
+            exit 1
+          fi
+
+          echo "Project root found: $PROJECT_ROOT"
+          echo "project_root=$PROJECT_ROOT" >> "$GITHUB_OUTPUT"
+
+      - name: Copy project files to repository root
+        shell: bash
+        run: |
+          set -e
+
+          PROJECT_ROOT="${{ steps.detect.outputs.project_root }}"
+
+          shopt -s dotglob nullglob
+
+          for item in "$PROJECT_ROOT"/*; do
+            name="$(basename "$item")"
+
+            case "$name" in
+              ".git")
+                ;;
+              ".github")
+                ;;
+              "nse-market-research-app-v2-fixed.zip")
+                ;;
+              *)
+                rm -rf "$name"
+                cp -a "$item" .
+                ;;
+            esac
+          done
+
+          rm -rf "_zip_extract"
+
+      - name: Remove unnecessary generated folders
+        shell: bash
+        run: |
+          rm -rf .gradle
+          rm -rf build
+          find . -type d -name build -prune -exec rm -rf {} +
+
+      - name: Commit extracted project
+        shell: bash
+        run: |
+          set -e
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Bootstrap Android project from ZIP"
+            git push
+          fi
