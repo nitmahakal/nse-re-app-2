@@ -46,7 +46,7 @@ android {
 chaquopy {
     defaultConfig {
         version = "3.13"
-        buildPython("python3.13")
+        buildPython("python")
         pip {
             install("numpy==2.3.2")
             install("pandas==2.3.2")
