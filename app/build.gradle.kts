@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.nitmahakal.nsemarketresearch"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.nitmahakal.nsemarketresearch"
