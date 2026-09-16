@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.nitmahakal.nsemarketresearch"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nitmahakal.nsemarketresearch"
@@ -63,7 +63,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.12.1")
     implementation("androidx.compose.foundation:foundation:1.12.1")
     implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.compose.material:material-icons-extended:1.12.1")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.work:work-runtime-ktx:2.11.2")
     implementation("androidx.datastore:datastore-preferences:1.2.0")
 }
