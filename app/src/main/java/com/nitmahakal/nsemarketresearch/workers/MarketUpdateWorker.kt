@@ -36,6 +36,10 @@ class MarketUpdateWorker(appContext: Context, params: WorkerParameters) : Corout
         }
         try {
             val result = task.await()
+            result.put(
+                "stage",
+                if (result.optBoolean("success", false)) "complete" else "failed"
+            )
             updateForeground(result)
             if (result.optBoolean("success", false)) {
                 val auto = OneTimeWorkRequestBuilder<AutoScanWorker>().addTag("nse-autoscan").build()
