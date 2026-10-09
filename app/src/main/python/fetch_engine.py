@@ -324,7 +324,6 @@ def update(symbols, data_dir, progress_callback=None):
         pending = list(failed)
         failed = []
         retry_total = len(pending)
-        completed -= retry_total
 
         for retry_number, item in enumerate(pending, start=1):
             s = item["symbol"]
@@ -352,7 +351,6 @@ def update(symbols, data_dir, progress_callback=None):
                 retry.get("last_date", ""),
                 retry.get("error", "")
             )
-            completed += 1
 
     save_index(data_dir, idx)
     write_progress({"stage":"complete","total":total,"completed":completed,"expected":expected,"market_data_through":min(final_dates) if (final_dates := [idx.get(s, {}).get("last_date") for s in symbols if idx.get(s, {}).get("last_date")]) else None})
