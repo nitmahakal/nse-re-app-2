@@ -74,7 +74,11 @@ fun NSEApp(vm: MainViewModel = viewModel()) {
                 }
             }
         ) { pad ->
-            AnimatedContent(tab, modifier = Modifier.padding(pad), label = "main-tabs") { current ->
+            AnimatedContent(
+                tab,
+                modifier = Modifier.padding(pad).fillMaxSize(),
+                label = "main-tabs"
+            ) { current ->
                 when (current) {
                     0 -> UpdateScreen(vm)
                     1 -> ScannerScreen(vm)
