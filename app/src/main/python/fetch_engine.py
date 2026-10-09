@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-MAX_CANDLES = 1500
+MAX_CANDLES = 5000
 CHUNK_SIZE = 25
 MAX_RETRIES = 1
 REQUEST_TIMEOUT = 30
