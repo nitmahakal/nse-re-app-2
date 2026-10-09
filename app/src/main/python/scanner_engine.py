@@ -356,9 +356,18 @@ def run_saved_scan_and_track(data_dir, scan_name, timeframe, conditions, result_
             x = active_map[key]
             x["last_date"] = market_date
             x["last_close"] = m["close"]
+    failed_symbols = {
+        item.get("symbol") for item in result.get("failed", [])
+    }
+
     for key in list(active_map.keys()):
         if key not in current:
             x = active_map[key]
+
+            # A failed scan is not an exit signal.
+            if x.get("symbol") in failed_symbols:
+                continue
+
             symbol = x["symbol"]
             try:
                 s = load_symbol(data_dir, symbol)
