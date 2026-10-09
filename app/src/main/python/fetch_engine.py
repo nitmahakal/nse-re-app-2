@@ -320,7 +320,7 @@ def update(symbols, data_dir, progress_callback=None):
 
     # Exactly one retry, one symbol at a time, only for failures.
     retry_results = []
-        if failed:
+    if failed:
         pending = list(failed)
         failed = []
         retry_total = len(pending)
