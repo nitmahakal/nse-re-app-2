@@ -307,6 +307,7 @@ def update(symbols, data_dir, progress_callback=None):
                 except Exception as exc:
                     result = {"symbol": s, "ok": False, "last_date": "", "rows": 0, "error": str(exc)}
                 completed += 1
+                result["mode"] = group_name
                 if result["ok"]:
                     idx[s] = {"last_date": result["last_date"], "row_count": result["rows"], "updated_at": datetime.utcnow().isoformat()}
                     # Persist after every successful symbol, so an interrupted run resumes cleanly.
@@ -314,23 +315,44 @@ def update(symbols, data_dir, progress_callback=None):
                 else:
                     failed.append(result)
                 emit(group_name, s, result.get("last_date", ""), result.get("error", ""))
+            
                 time.sleep(PAUSE_SECONDS)
 
     # Exactly one retry, one symbol at a time, only for failures.
     retry_results = []
-    if failed:
-        pending = list(failed)
-        failed = []
-        for item in pending:
-            s = item["symbol"]
-            retry = _update_one(s, data_dir, "full", idx.get(s, {}).get("last_date"), None)
-            if retry["ok"]:
-                idx[s] = {"last_date": retry["last_date"], "row_count": retry["rows"], "updated_at": datetime.utcnow().isoformat()}
-                save_index(data_dir, idx)
-            else:
-                failed.append(retry)
-            retry_results.append(retry)
-            emit("retry", s, retry.get("last_date", ""), retry.get("error", ""))
+        if failed:
+            pending = list(failed)
+            failed = []
+            retry_total = len(pending)
+            completed -= retry_total
+    
+            for retry_number, item in enumerate(pending, start=1):
+                s = item["symbol"]
+                retry_mode = item.get("mode", "full")
+                retry = _update_one(
+                    s, data_dir, retry_mode,
+                    idx.get(s, {}).get("last_date"), None
+                )
+                retry["mode"] = retry_mode
+    
+                if retry["ok"]:
+                    idx[s] = {
+                        "last_date": retry["last_date"],
+                        "row_count": retry["rows"],
+                        "updated_at": datetime.utcnow().isoformat()
+                    }
+                    save_index(data_dir, idx)
+                else:
+                    failed.append(retry)
+    
+                retry_results.append(retry)
+                emit(
+                    f"retry {retry_number}/{retry_total}",
+                    s,
+                    retry.get("last_date", ""),
+                    retry.get("error", "")
+                )
+                completed += 1
 
     save_index(data_dir, idx)
     write_progress({"stage":"complete","total":total,"completed":completed,"expected":expected,"market_data_through":min(final_dates) if (final_dates := [idx.get(s, {}).get("last_date") for s in symbols if idx.get(s, {}).get("last_date")]) else None})
