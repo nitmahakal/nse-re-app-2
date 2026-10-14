@@ -157,6 +157,14 @@ def _atomic_write_csv(path, rows):
 def _parse_yahoo_timestamp(ts):
     return datetime.utcfromtimestamp(int(ts)).strftime("%Y-%m-%d")
 
+def _yahoo_ticker(symbol):
+    """Map plain NSE equity symbols to Yahoo Finance tickers without double suffixes."""
+    value = str(symbol).strip().upper()
+    if not value:
+        raise ValueError("Empty stock symbol")
+    if value.endswith(".NS") or value.endswith(".BO"):
+        return value
+    return value + ".NS"
 
 def _download_symbol(symbol, start_epoch=None, end_epoch=None):
     """None start means period1=0 (all available Yahoo daily history)."""
@@ -164,7 +172,7 @@ def _download_symbol(symbol, start_epoch=None, end_epoch=None):
         start_epoch = 0
     if end_epoch is None:
         end_epoch = int(time.time()) + 86400
-    ticker = urllib.parse.quote(str(symbol).strip().upper(), safe="")
+    ticker = urllib.parse.quote(_yahoo_ticker(symbol), safe="")
     url = ("https://query1.finance.yahoo.com/v8/finance/chart/" + ticker
            + "?period1=" + str(int(start_epoch)) + "&period2=" + str(int(end_epoch))
            + "&interval=1d&events=history&includeAdjustedClose=false")
