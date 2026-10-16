@@ -397,7 +397,20 @@ def update(symbols, data_dir, progress_callback=None):
             progress_callback(final_payload)
         except Exception:
             pass
-    return {"success": not failed, "total": total, "completed": completed,
-            "failed": len(failed), "failed_symbols": failed_symbols, "expected": expected,
-            "market_data_through": market_through, "mode_counts": mode_counts,
-            "retry_count": retry_count}
+    return {
+        "success": not failed,
+        "process_complete": True,
+        "stage": final_stage,
+        "total": total,
+        "completed": completed,
+        "failed": len(failed),
+        "failed_symbols": failed_symbols,
+        "failed_names": failed_names,
+        "message": message,
+        "expected": expected,
+        "market_data_through": market_through,
+        "mode_counts": mode_counts,
+        "retry_count": retry_count,
+        "retry_total": retry_total,
+        "retry_completed": retry_completed,
+    }
