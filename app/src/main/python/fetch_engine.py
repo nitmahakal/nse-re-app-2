@@ -347,7 +347,8 @@ def update(symbols, data_dir, progress_callback=None):
                     pass
             else:
                 failed.append(result)
-                retry_completed = position
+                
+            retry_completed = position
             emit("retry {}/{}".format(position, len(first_failures)), symbol,
                  result.get("last_date", ""), result.get("error", ""))
             time.sleep(PAUSE_SECONDS)
