@@ -273,7 +273,7 @@ def update(symbols, data_dir, progress_callback=None):
     mode_counts = {"full": len(full), "incremental": len(incremental), "already": len(already)}
 
     def emit(stage, symbol="", last_date="", error=""):
-            payload = {"stage": stage, "total": total, "completed": completed,
+        payload = {"stage": stage, "total": total, "completed": completed,
                    "failed": len(failed), "symbol": symbol, "last_date": last_date,
                    "expected": expected, "full": len(full), "incremental": len(incremental),
                    "already": len(already), "retry_count": retry_count,
@@ -359,7 +359,7 @@ def update(symbols, data_dir, progress_callback=None):
     dates = [idx[s]["last_date"] for s in symbols
              if isinstance(idx.get(s), dict) and idx[s].get("last_date")]
     market_through = min(dates) if dates else None
-        final_stage = "complete"
+    final_stage = "complete"
     failed_symbols = [
         {"symbol": item["symbol"], "error": item.get("error", "")}
         for item in failed
