@@ -269,13 +269,17 @@ def update(symbols, data_dir, progress_callback=None):
     full, incremental, already = _classify(symbols, root, idx, expected)
     total, completed = len(symbols), len(already)
     failed, retry_count = [], 0
+    retry_total, retry_completed = 0, 0
     mode_counts = {"full": len(full), "incremental": len(incremental), "already": len(already)}
 
     def emit(stage, symbol="", last_date="", error=""):
-        payload = {"stage": stage, "total": total, "completed": completed,
+            payload = {"stage": stage, "total": total, "completed": completed,
                    "failed": len(failed), "symbol": symbol, "last_date": last_date,
                    "expected": expected, "full": len(full), "incremental": len(incremental),
-                   "already": len(already), "retry_count": retry_count}
+                   "already": len(already), "retry_count": retry_count,
+                   "retry_total": retry_total,
+                   "retry_completed": retry_completed,
+                   "error": error}
         try:
             _atomic_json(progress_file(root), payload)
         except Exception:
@@ -325,6 +329,9 @@ def update(symbols, data_dir, progress_callback=None):
     # Exactly one retry per failed symbol. Retries do not increment completed.
     if failed:
         first_failures, failed = list(failed), []
+        retry_total = len(first_failures)
+        retry_completed = 0
+
         for position, previous in enumerate(first_failures, 1):
             retry_count += 1
             symbol, mode = previous["symbol"], previous.get("mode", "full")
@@ -340,6 +347,7 @@ def update(symbols, data_dir, progress_callback=None):
                     pass
             else:
                 failed.append(result)
+                retry_completed = position
             emit("retry {}/{}".format(position, len(first_failures)), symbol,
                  result.get("last_date", ""), result.get("error", ""))
             time.sleep(PAUSE_SECONDS)
@@ -351,12 +359,34 @@ def update(symbols, data_dir, progress_callback=None):
     dates = [idx[s]["last_date"] for s in symbols
              if isinstance(idx.get(s), dict) and idx[s].get("last_date")]
     market_through = min(dates) if dates else None
-    final_stage = "failed" if failed else "complete"
-    failed_symbols = [{"symbol": item["symbol"], "error": item.get("error", "")} for item in failed]
-    final_payload = {"stage": final_stage, "total": total, "completed": completed,
-                     "failed": len(failed), "expected": expected,
-                     "market_data_through": market_through, "retry_count": retry_count,
-                     "failed_symbols": failed_symbols}
+        final_stage = "complete"
+    failed_symbols = [
+        {"symbol": item["symbol"], "error": item.get("error", "")}
+        for item in failed
+    ]
+    failed_names = [item["symbol"] for item in failed_symbols]
+
+    message = (
+        "Update complete; failed stocks: " + ", ".join(failed_names)
+        if failed_names else "Update complete"
+    )
+
+    final_payload = {
+        "stage": final_stage,
+        "process_complete": True,
+        "success": not failed,
+        "total": total,
+        "completed": completed,
+        "failed": len(failed),
+        "expected": expected,
+        "market_data_through": market_through,
+        "retry_count": retry_count,
+        "retry_total": retry_total,
+        "retry_completed": retry_completed,
+        "failed_symbols": failed_symbols,
+        "failed_names": failed_names,
+        "message": message
+    }
     try:
         _atomic_json(progress_file(root), final_payload)
     except Exception:
