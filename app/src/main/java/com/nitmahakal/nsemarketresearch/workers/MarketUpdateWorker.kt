@@ -38,7 +38,13 @@ class MarketUpdateWorker(appContext: Context, params: WorkerParameters) : Corout
             val result = task.await()
             result.put(
                 "stage",
-                if (result.optBoolean("success", false)) "complete" else "failed"
+                if (result.optBoolean("process_complete", false)) {
+                    "complete"
+                } else if (result.optBoolean("success", false)) {
+                    "complete"
+                } else {
+                    "failed"
+                }
             )
             updateForeground(result)
             if (result.optBoolean("success", false)) {
