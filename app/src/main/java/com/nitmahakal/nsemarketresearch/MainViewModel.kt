@@ -57,7 +57,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                             val o = JSONObject(result)
                             val through = o.optString("market_data_through", "")
                             if (through.isNotBlank()) viewModelScope.launch { store.setLastUpdated(through) }
-                            _updateText.value = if (o.optBoolean("success", false)) "Updated data upto $through" else "Update completed with ${o.optInt("failed", 0)} failed symbols (one retry used)"
+                            val message = o.optString("message", "")
+                            _updateText.value = if (o.optBoolean("success", false)) {
+                                "Updated data upto $through"
+                            } else if (message.isNotBlank()) {
+                                message
+                            } else {
+                                "Update completed with ${o.optInt("failed", 0)} failed symbols (one retry used)"
+                            }
                         } catch (_: Exception) {}
                     }
                 }
